@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xzb.dao.AdDao">
+	<insert id="insert">
+		insert into ad(title,img_file_name,link,weight)
+		 values(#{title},#{imgFileName},#{link},#{weight})
+	</insert>
+
+	<!--查询所有匹配的广告按权重id排序 where if 是为了多条件查询(载入页面为空和搜索功能)
+	like和'%'配合==左右模糊查询   -->
+	<select id="selectByPage" resultType="Ad">
+		select id,title,img_file_name,link,weight from ad
+		<where>
+			<if test="title != null and title != ''">
+				title like '%' #{title} '%'
+			</if>
+		</where>
+		order by weight desc,id
+	</select><!-- desc对查询结果进行降序排序，而asc就是升序(默认是升序) -->
+	<!-- “,”号隔开多个排序条件  先按weight 再按 id -->
+
+	<!-- 根据id查某条数据 -->
+	<select id="selectById" resultType="Ad">
+		select id,title,img_file_name,link,weight from ad where id=#{_parameter}
+	</select>
+
+	<!-- 修改广告数据 -->
+	<update id="update">
+		update ad
+		<set>
+			<if test="title != null">
+				title = #{title},
+			</if>
+			<if test="imgFileName != null">
+				img_file_name = #{imgFileName},
+			</if>
+			<if test="link != null">
+				link = #{link},
+			</if>
+			<if test="weight != null">
+				weight = #{weight},
+			</if>
+		</set>
+		where id=#{id}
+	</update>
+	
+	<delete id="delete">
+		delete from ad where id=#{_parameter}
+	</delete>
+</mapper>

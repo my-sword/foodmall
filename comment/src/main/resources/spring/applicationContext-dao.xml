@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 数据连接配置 -->
+<!-- 创建spring.xml文件,引入beans,context,tx,mvc的命名空间 -->
+<beans  
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">	
+	<!-- 配置数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<!-- 数据库连接版本不同需要修改pom.xml下载对应版本,下载文件存放地址可在项目结构Library查看引用地址 -->
+		<!-- mysql8.0.15 -->
+		<!-- Class.forName("com.mysql.cj.jdbc.Driver"); -->
+		<!-- conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/comment?serverTimezone=UTC", "root", "123456"); -->
+		<!-- mysql5.1.25 -->
+		<!-- com.mysql.jdbc.Driver -->
+		<!-- jdbc:mysql://127.0.0.1:3306/comment?useUnicode=true&characterEncoding=utf8 -->
+		<!--useUnicode=true&characterEncoding=gbk -->
+
+		<!-- 问题 jdbc失败：删除target文件然后导入8.0.15java驱动包(一定要在pom导入因为需要jar和源码jar) 地址127.0.0.1:3306 -->
+		<property name="driverClass" value="${dataSource.driverClass}"/>
+		<property name="jdbcUrl" value="${dataSource.url}"/>
+		<property name="user" value="${dataSource.username}"/>
+		<property name="password" value="${dataSource.password}"/>
+
+
+        <!-- 每60秒检查所有连接池中的空闲连接。Default: 0 -->
+        <property name="idleConnectionTestPeriod" value="60" />
+        <!-- 初始化时获取三个连接，取值应在minPoolSize与maxPoolSize之间。Default: 3 --> 
+		<property name="initialPoolSize" value="5" />
+        <!-- 最大空闲时间,60秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+        <property name="maxIdleTime" value="60" />
+		<!-- 连接池中保留的最大连接数。Default: 15 -->
+		<property name="maxPoolSize" value="10" />
+		<!-- 连接池中保留的最小连接数。 -->
+        <property name="minPoolSize" value="5" />
+        <!-- JDBC的标准参数，用以控制数据源内加载的PreparedStatements数量。但由于预缓存的statements 
+  		属于单个connection而不是整个连接池。所以设置这个参数需要考虑到多方面的因素。 
+  		如果maxStatements与maxStatementsPerConnection均为0，则缓存被关闭。Default: 0-->
+  		<property name="maxStatements" value="100" />
+		<!-- maxStatementsPerConnection定义了连接池内单个连接所拥有的最大缓存statements数。Default: 0  -->
+		<property name="maxStatementsPerConnection" value="3" />
+        <!-- 定义所有连接测试都执行的测试语句。在使用连接测试的情况下这个显著提高测试速度。注意： 
+  		测试的表必须在初始数据源的时候就存在。Default: null -->
+  		<property name="preferredTestQuery" value="select 1" />
+        <!-- 定义在从数据库获取新连接失败后重复尝试的次数。Default: 30-->
+		<property name="acquireRetryAttempts" value="3" />
+        <!-- 两次连接中间隔时间，单位毫秒。Default: 1000 -->
+        <property name="acquireRetryDelay" value="1000" />
+        <!-- 当连接池用完时客户端调用getConnection()后等待获取新连接的时间，超时后将抛出 
+  		SQLException,如设为0则无限期等待。单位毫秒。Default: 0 -->
+  		<property name="checkoutTimeout" value="30000" />
+    </bean>
+    
+    <!-- 配置sqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    	<!-- 注入数据源 -->
+    	<property name="dataSource" ref="dataSource"/>
+    	<!-- 扫描mybatis核心配置文件 -->
+    	<property name="configLocation" value="classpath:spring/mybatis.xml"/>
+    	<!-- 扫描java bean，自动使用别名 -->
+    	<property name="typeAliasesPackage" value="com.xzb.bean"/><!-- 源文件夹 -->
+    	<!-- 扫描mybatis的SQL配置文件 -->
+    	<property name="mapperLocations" value="classpath:mapper/*.xml"/>
+    </bean>
+    
+    <!-- 扫描Dao接口包 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+    	<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+    	<property name="basePackage" value="com.xzb.dao"/>
+    </bean>
+</beans>
+

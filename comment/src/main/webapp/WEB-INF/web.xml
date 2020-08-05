@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Servlet 2.5 -->
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+            http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+    version="2.5" xmlns="http://java.sun.com/xml/ns/javaee">
+	<!-- Servlet 3.0
+	<?xml version=”1.0″ encoding=”utf-8″?>
+	<web-app version=”3.0″
+	xmlns=”http://java.sun.com/xml/ns/javaee”
+	xmlns:xsi=”http://www.w3.org/2001/XMLSchema-instance”
+	xsi:schemaLocation=”http://java.sun.com/xml/ns/javaee
+	http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd”>
+ -->
+	<!-- Servlet 3.0 作为 Java EE 6 规范体系中一员，随着 Java EE 6 规范一起发布。
+	该版本在前一版本（Servlet 2.5）的基础上提供了若干新特性用于简化 Web 应用的开发和部署。
+	其中有几项特性的引入让开发者感到非常兴奋，同时也获得了 Java 社区的一片赞誉之声：
+
+	异步处理支持：有了该特性，Servlet 线程不再需要一直阻塞，直到业务处理完毕才能再输出响应，最后才结束该 Servlet 线程。
+在接收到请求之后，Servlet 线程可以将耗时的操作委派给另一个线程来完成，自己在不生成响应的情况下返回至容器。
+针对业务处理较耗时的情况，这将大大减少服务器资源的占用，并且提高并发处理速度。
+	新增的注解支持：该版本新增了若干注解，用于简化 Servlet、过滤器（Filter）和监听器（Listener）的声明，
+这使得 web.xml 部署描述文件从该版本开始不再是必选的了。
+	可插性支持：熟悉 Struts2 的开发者一定会对其通过插件的方式与包括 Spring 在内的各种常用框架的整合特性记忆犹新。
+将相应的插件封装成 JAR 包并放在类路径下，Struts2 运行时便能自动加载这些插件。
+现在 Servlet 3.0 提供了类似的特性，开发者可以通过插件的方式很方便的扩充已有 Web 应用的功能，而不需要修改原有的应用。  -->
+
+
+	<display-name>美食商城</display-name>
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+	<!-- 加载配置文件，初始化容器 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:spring/root-context.xml</param-value><!-- 配置文件上传解析器，限制上传大小 -->
+	</context-param>
+
+	<!-- 上下文加载监听类 -->
+	<!--
+	ContextLoaderListener继承自ContextLoader，实现的是ServletContextListener接口。
+	继承ContextLoader有什么作用？
+ContextLoaderListener可以指定在Web应用程序启动时载入Ioc容器，正是通过ContextLoader来实现的，可以说是Ioc容器的初始化工作。
+	实现ServletContextListener又有什么作用？
+ServletContextListener接口里的函数会结合Web容器的生命周期被调用。因为ServletContextListener是ServletContext的监听者，如果ServletContext发生变化，会触发相应的事件，而监听器一直对事件监听，如果接收到了变化，就会做出预先设计好的相应动作。由于ServletContext变化而触发的监听器的响应具体包括：在服务器启动时，ServletContext被创建的时候，服务器关闭时，ServletContext将被销毁的时候等，相当于web的生命周期创建与效果的过程。
+	那么ContextLoaderListener的作用是什么？
+ContextLoaderListener的作用就是启动Web容器时，读取在contextConfigLocation中定义的xml文件，自动装配ApplicationContext的配置信息，并产生WebApplicationContext对象，然后将这个对象放置在ServletContext的属性里，这样我们只要得到Servlet就可以得到WebApplicationContext对象，并利用这个对象访问spring容器管理的bean。
+简单来说，就是上面这段配置为项目提供了spring支持，初始化了Ioc容器。
+
+	那又是怎么为我们的项目提供spring支持的呢？
+上面说到“监听器一直对事件监听，如果接收到了变化，就会做出预先设计好的相应动作”。而监听器的响应动作就是在服务器启动时contextInitialized会被调用，关闭的时候contextDestroyed被调用。 -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<!-- 编码过滤器，过滤乱码 -->
+	<filter>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<!-- 上传文件解析器 -->
+	<filter>
+		<filter-name>MultipartFilter</filter-name>
+		<filter-class>org.springframework.web.multipart.support.MultipartFilter</filter-class>
+		<init-param>
+			<param-name>multipartResolverBeanName</param-name>
+			<param-value>multipartResolver</param-value>
+		</init-param>
+	</filter>
+
+	<!-- 如果一个过滤器需要过滤多种文件,则可以配置多个<filter-mapping>,一个mapping定义一个url-pattern来定义过滤规则。 -->
+	<!-- filter-mapping即过滤器映射。过滤器可被映射到一个servlet或一个URL模式。 -->
+	<filter-mapping>
+		<filter-name>MultipartFilter</filter-name>
+		<!--当配置<url-pattern>/</url-pattern>的时候，默认匹配类型。它会匹配到路径型的url，就不会匹配到模式为.jsp型的url-->
+		<!--当配置<url-pattern><url-pattern>/*<url-pattern>的时候，它就会匹配到所有类型的url，包括路径型的，有各种后缀的等等。-->
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- 一般来说，资源操有查询，新增，删除，更改四种类型，对应HTTP协议中四类请求：GET，POST，DELETE，PUT。 -->
+	<!-- 普通浏览器只支持GET，POST方式 ，其他请求方式如DELETE|PUT必须通过过滤器的支持才能实现。-->
+	<!-- Spring自带了一个过滤器HiddenHttpMethodFilter，支持GET、POST、PUT、DELETE请求。。-->
+	<filter>
+		<filter-name>hiddenHttpMethodFilter</filter-name>
+		<filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>hiddenHttpMethodFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- spring mvc servlet 分发器-->
+	<!-- DispatcherServlet主要用作职责调度工作，本身主要用于控制流程，主要职责如下：
+	1、文件上传解析，如果请求类型是multipart将通过MultipartResolver进行文件上传解析；
+	2、通过HandlerMapping，将请求映射到处理器（返回一个HandlerExecutionChain，它包括一个处理器、多个HandlerInterceptor拦截器）；
+	3、通过HandlerAdapter支持多种类型的处理器(HandlerExecutionChain中的处理器)；
+	4、通过ViewResolver解析逻辑视图名到具体视图实现；
+	5、本地化解析；
+	6、渲染具体的视图等；
+	7、如果执行过程中遇到异常将交给HandlerExceptionResolver来解析。-->
+	<servlet>
+		<servlet-name>spring</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring/applicationContext.xml</param-value><!--Spring容器配置，管理容器中的Bean-->
+		</init-param>
+		<load-on-startup>1</load-on-startup><!-- 表示启动容器时初始化该Servlet -->
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>spring</servlet-name>
+		<url-pattern>/</url-pattern><!-- 表示哪些请求交给Spring Web MVC处理， “/” 是用来定义默认servlet映射的。也可以如“*.html”表示拦截所有以html为扩展名的请求。 -->
+	</servlet-mapping>
+
+	<!-- <jsp-config> 包括<taglib> 和<jsp-property-group> 两个子元素。 其中<taglib>元素在JSP 1.2时就已经存在；而<jsp-property-group>是JSP 2.0 新增的元素。 -->
+	<!-- <jsp-property-group>元素主要有八个子元素，它们分别为：
+		1.<description>：设定的说明；
+		2.<display-name>：设定名称；
+		3.<url-pattern>：设定值所影响的范围，如：/CH2 或 /*.jsp；
+		4.<el-ignored>：若为true，表示不支持EL 语法；
+		5.<scripting-invalid>：若为true，表示不支持<% java代码%>语法；
+		6.<page-encoding>：设定JSP 网页的编码；
+		7.<include-prelude>：设置JSP 网页的抬头，扩展名为.jspf；
+		8.<include-coda>：设置JSP 网页的结尾，扩展名为.jspf。
+		https://www.cnblogs.com/keyi/p/7201479.html
+ -->
+	<jsp-config>
+		<jsp-property-group>
+			<url-pattern>*.jsp</url-pattern>
+			<include-prelude>/WEB-INF/jsp/system/common.jsp</include-prelude><!-- 此处自动装载共用属性common.jsp -->
+		</jsp-property-group>
+	</jsp-config>
+</web-app>

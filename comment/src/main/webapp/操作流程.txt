@@ -1,0 +1,21 @@
+jquery.ztree.all.js 树形插件  json.js  JSON解析包   jquery.validate.js 验证插件  messages_zh.js中文乱码验证
+jQuery.md5.js md5验证插件   echarts.js饼状图插件  additional-methods.js额外方法验证
+
+
+
+
+1 未登录访问其他页面：MVC前置拦截器(xml设置拦截器类)
+    通过SessionInterceptor自类的preHandle预处理方法拦截控制器--返回请求头"/login/sessionTimeout"--
+    到服务端的LoginController类执行sessionTimeout--设置枚举常量信息--返回system/error.jsp页面--父窗口弹出枚举信息--跳转login
+
+2   index-->跳转到登录login---调用LoginController类/validate验证--调用UserDao接口和xml实现 返回验证并跳转
+    login结构:form表单设置四个文本框 将其中两个的name与pojo类对应  将输入框用md5加密赋予对应name文本框提交。
+                            失败：跳转到index login.js弹出窗口
+                            成功：将账号密码在数据库查询 寻找匹配相关的信息数据、菜单、动作等设置字段映射 并将其放入session。
+    跳转index页面 执行页面加载ajax请求访问地址，返回session的字段映射信息。ajsx加载菜单信息，each循环遍历并利用JQuery插入元素并根据菜单层级
+    添加事件 根据行为其渲染到页面上。
+
+    基本逻辑：根据请求或者jsp等each交互请求 在控制层根据地址或提交方式响应修改--判断调用业务是否成功 在业务层对传入的数据用BeanUtils进行解封为
+    原始bean类 进行数据库调用 返回操作失败、成功或对数据进行封装的dto结果。在控制层设置model提供视图调用，并设置成功或失败信息、返回指定的页面
+    由jsp页面   1.加载调用成功与否内容
+                2.根据页面操作元素绑定js函数  根据$("#mainForm").attr 修改action提交路径来操作页面

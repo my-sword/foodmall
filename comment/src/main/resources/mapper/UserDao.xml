@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xzb.dao.UserDao">
+	<!-- sys_user t t是别名  使用mysql表达式 -->
+	<!-- 动态sql  if作为限制 当传入的是 new User为空时，if不成立，即不执行。传入的有用户数据时，就执行特定用户数据。 -->
+	<select id="select" resultType="User">
+		select id,ch_name,name,group_id from sys_user t
+		<where>
+			<if test="name != null">
+				and t.name = #{name}
+			</if>
+			<if test="chName != null">
+				and t.ch_name=#{chName}
+			</if>
+			<if test="password != null">
+				and t.password = #{password}
+			</if>
+		</where>
+		order by convert(ch_name using gbk) collate gbk_chinese_ci
+	</select><!--where后的条件使用表达式,传入参数不为空且根据名称密码匹配查询 存在返回1  #{name}表示serviceimpl传入的user中的成员
+	MD5在js中验证，password为md5值  order...对查询的中文名字进行gbk格式的升序排序 -->
+
+	<!-- 添加账户，当不存在同名就添加 -->
+	<insert id="insert">
+		insert into sys_user(name,ch_name,`password`)
+		select #{name},#{chName},#{password} from dual
+		 where not exists(select 1 from sys_user where name=#{name})
+	</insert>
+
+	<!-- 查询某个id的所有属性值 -->
+	<select id="selectById" resultType="User">
+		select id,ch_name,name,group_id from sys_user where id = #{_parameter}
+	</select>
+	<!-- 1==*==anycol select 1 from 中的1是一常量，查到的所有行的值都是它，但从效率上来说，1>anycol>*，因为不用查字典表。-->
+	<!-- 修改 -->
+	<update id="update">
+		update sys_user
+		<set>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="chName != null">
+				ch_name=#{chName},
+			</if>
+			<if test="password != null">
+				password = #{password},
+			</if>
+			<if test="groupId != null">
+				group_id = #{groupId},
+			</if>
+		</set>
+		where id=#{id}
+		<if test="name != null">
+			and not exists(select 1 from(select 1 from sys_user where name=#{name} and id != #{id})a)
+		</if>
+	</update><!-- a  )a) -->
+
+
+	<delete id="delete">
+		delete from sys_user where id=#{_parameter}
+	</delete>
+</mapper>

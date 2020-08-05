@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!-- https://blog.csdn.net/u010569419/article/details/87555943 -->
+<configuration>
+	<settings>
+		<!-- 对于支持自动生成记录主键的数据库，如：MySQL，SQL Server，此时设置useGeneratedKeys参数值为true，
+		在执行添加记录之后可以获取到数据库自动生成的主键ID。
+		 https://www.cnblogs.com/nuccch/p/9069644.html-->
+		<setting name="useGeneratedKeys" value="true"/>
+		<!-- 最常用的就是驼峰属性name=“mapUnderscoreToCamelCase”，默认false，
+		一般我们在写java代码中的变量命名规范都是驼峰，方法则是下滑线，数据库里的列名一般也是用下划线的，
+		如果说驼峰属性不改成true，就会导致Java开发人员的变量StudentId和数据库中的student_id,无法一一对应，
+		既然导致我们的程序无法通过mybatis查询出正确的结果 -->
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+<!--		<setting name="logImpl" value="LOG4J"/>-->
+	</settings>
+
+	<!-- <plugins>插件标签：主要作用简单说就是拦截映射语句执行过程进行拦截从而做出特定的操作， -->
+	<plugins>
+		<!-- 可以使用Page对象来获取关于分页的数据，例如当前页码、总记录数等 -->
+		<!--MyBatis中使用插件、使用PageInterceptor插件、自定义类型处理器  https://www.jianshu.com/p/07505cccaa77 -->
+		<plugin interceptor="com.xzb.dao.interceptor.PageInterceptor"/>
+	</plugins>
+</configuration>

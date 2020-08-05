@@ -1,0 +1,32 @@
+1.comment是后台管理系统程序，因为是maven项目，
+	eclipse 和 idea以及其他IDE 均可导入。
+2.react-dianping-new是前端项目初始代码，已删除了node_modules，
+	需要安装node.js环境后重新执行npm install，具体步骤见视频。
+	该目录下webpack.config.js文件中 "target: 'http://127.0.0.1:8081/comment',"是指向后台，
+	如果想要前端app连接mock server ，注释该句，放出上面的“target: 'http://localhost:3000',”
+	修改时注意输入法是英文输入法（切忌中文）
+3.SQL脚本请先运行createTable.sql建表，再运行loadInitData.sql插入数据
+
+★安装node.js
+在F:\WorkSpace\SSM\foodmall\react-dianping-new  cmd
+输入 npm install 等待完成
+★启动npm配置
+F:\WorkSpace\SSM\foodmall\react-dianping-new 打开命令行(有package.json的地方)
+输入start /b npm run mock
+★启动npm
+F:\WorkSpace\SSM\foodmall\react-dianping-new\mock 打开另一个命令行(有server.js的地方) 输入npm start
+
+进入后台管理系统：http://localhost:8082/foodmall_war_exploded/
+账号：admin 密码：123   账号可以在mysql sys_user查询
+普通浏览器404需要刷新   google不用刷新
+
+指向的地方可以在server.js改
+http://localhost:8080/
+http://127.0.0.1:3002/api/homead
+
+1 如果改项目名 idea一般需要再自行更改：springxml和mapperxml的数据内容   需要在日志中查找错误的信息的指定位置
+2 中文乱码：ssm框架设置web文件CharacterEncodingFilter过滤器。  如果全部乱码是因为idea的setting--editor-ProjectEcoding将gbk转为utf-8
+    出现此问题原因在于 用project gbk编码，utf8也可以输入汉字  解决：设置utf-8，然后替换乱码
+3 基础变量一般@Resource按byname配置，防止类型相同。dao和service一般用@Autowired按bytype
+    本质:为被哪个类引用如@service @Controller
+4 防止数据库关键词冲突需要增加''  如desc  'desc'

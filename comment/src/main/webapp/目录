@@ -1,0 +1,12 @@
+bean 各类容器属性封装(pojo对象)
+cache 缓存 验证码和手机号缓存
+constant 各类常量表 弹出信息枚举类
+controller 控制器，控制页面请求和调用
+dao 数据层
+dto 数据传输对象(对原始bean类再次封装)
+service 事务层(Spring将业务逻辑分离)
+task 同步销售数量和星级
+util 通用工具类
+
+private  Logger log = LoggerFactory.getLogger(this.getClass());
+

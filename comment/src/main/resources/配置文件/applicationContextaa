@@ -1,0 +1,158 @@
+https://www.cnblogs.com/loveer/p/11332066.html
+p命名空间注入#
+
+需要引入xmlns:p="http://www.springframework.org/schema/p"
+p命名空间注入的特点是使用属性而不是子元素的形式配置Bean的属性，从而简化了配置代码。
+
+Copy
+    <bean name="person" class="com.Person">
+        <property name="name" value="tom"/>
+        <property name="spouse" ref="jane"/>
+    </bean>
+
+    <bean name="john-modern"
+               class="com.example.Person"
+               p:name="tom"
+               p:spouse-ref="jane"/>
+bean标签#
+
+id属性：用于指定Bean的名称，在Bean被依赖时使用，在获取Bean时使用等
+name属性：用于指定Bean的别名
+class属性：用于指定Bean的来源，即创建要创建的Bean的class类（需要全限定名）
+singleton属性：用于指定当前Bean的创建模式，若值为true表示为单例模式，false表示原型模式（prototype）
+depends-on属性：用于指定当前Bean的依赖Bean，强制指定的Bean在当前Bean初始化之前先完成初始化
+init-method属性：用于指定当前Bean的初始化方法，在Bean实例创建好后，首先会调用其指定名称的方法
+destory-method属性：用于指定当前Bean的销毁方法，在Bean即将被销毁之前会自动调用该属性指定的方法
+lazy-init属性：用于指定当前Bean的初始化时间，若值为true表示在初次调用时才会自动创建实例并初始化，false表示在IoC容器创建的时候就会完成创建和初始化
+autowire属性：用于指定当前Bean的依赖关系的自动注入方式，其有五个值：
+byName值：表示通过id名称来自动匹配；
+byType值：表示通过class指定的类型来自动装配；
+constructor值：表示使用构造函数的参数进行自动装配（参数的类型匹配）；
+autodetect值：表示自动进行选择匹配方式，首先进行constructor自动装配，若不存在构造方法则使用byType方式进行自动装配；
+no值：表示不适用自动装配。
+dependency-check属性：用于指定Bean的依赖检查模式，检查依赖关系是否完整，与自动装配合用，其有四个值：
+simple值：表示针对基本类型、字符串、集合进行依赖检查
+object值：表示对引用对象进行依赖检查
+all值：表示对基本类型、字符串、集合、引用对象全部进行依赖检查
+none值：表示不进行任何依赖检查，默认情况。
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xsi:schemaLocation="
+                    http://www.springframework.org/schema/context
+                    http://www.springframework.org/schema/context/spring-context.xsd
+                    http://www.springframework.org/schema/beans
+                    http://www.springframework.org/schema/beans/spring-beans.xsd
+                    http://www.springframework.org/schema/tx
+                    http://www.springframework.org/schema/tx/spring-tx.xsd
+                    http://www.springframework.org/schema/aop
+                    http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!-- 加载配置文件 -->
+	<context:property-placeholder location="classpath:jdbc.properties"/>
+
+
+	<!-- 自动扫描web包 ,将带有注解的类纳入spring容器管理 -->
+	<!--Spring 容器初始化的时候，会扫描 com.web 下标有
+        (@Component,@Service,@Controller,@Repository) 注解的类,纳入spring容器管理-->
+	<context:component-scan base-package="com.web"></context:component-scan>
+
+
+	<!-- dataSource 配置 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+
+		<!-- 基本属性 url、user、password -->
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="${jdbcUrl}"/>
+		<property name="username" value="${username}"/>
+		<property name="password" value="${password}"/>
+
+		<!-- 配置初始化大小 -->
+		<property name="initialSize" value="1"/>
+		<!-- 连接池最小空闲 -->
+		<property name="minIdle" value="1"/>
+		<!-- 连接池最大使用连接数量 -->
+		<property name="maxActive" value="20"/>
+
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="60000"/>
+
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000"/>
+
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000"/>
+
+	</bean>
+
+
+	<!--使用Spring+MyBatis的环境下，我们需要配值一个SqlSessionFactoryBean来充当SqlSessionFactory
+        在基本的MyBatis中，SqlSessionFactory可以使用SqlSessionFactoryBuilder来创建，
+        而在mybatis-spring中，则使用SqlSessionFactoryBean来创建。-->
+	<!-- mybatis文件配置，扫描所有mapper文件 -->
+	<bean id="sqlSessionFactory"
+		  class="org.mybatis.spring.SqlSessionFactoryBean"
+		  p:dataSource-ref="dataSource"
+		  p:configLocation="classpath:mybatis-config.xml"
+		  p:typeAliasesPackage="com.entity"
+	<!-- 如果 MyBatis 映射器 XML 文件在和映射器类相同的路径下不存在,那么另外一个需要配置文件的原因就是它了。 -->
+	p:mapperLocations="classpath*:mapper/*.xml"/>
+
+
+	<!-- spring与mybatis整合配置，自动扫描所有dao ,将dao接口生成代理注入到Spring-->
+	<!-- MapperScannerConfigurer 的作用是取代手动添加 Mapper ，自动扫描完成接口代理。
+           而不需要再在mybatis-config.xml里面去逐一配置mappers。 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"
+		  p:basePackage="com.dao"
+		  p:sqlSessionFactoryBeanName="sqlSessionFactory"/>
+
+
+	<!-- 对dataSource 数据源进行事务管理 -->
+	<bean id="transactionManager"
+		  class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+		  p:dataSource-ref="dataSource"/>
+
+
+	<!-- 配置AOP通知 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<!-- 配置事务属性 -->
+		<tx:attributes>
+			<!-- 添加事务管理的方法 -->
+			<tx:method name="save*" propagation="REQUIRED"/>
+			<tx:method name="delete*" propagation="REQUIRED"/>
+			<tx:method name="update*" propagation="REQUIRED"/>
+			<tx:method name="select*" propagation="REQUIRED" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+
+
+	<!-- 配置一个切面AOP -->
+	<aop:config>
+		<aop:aspect id="helloWorldAspect" ref="txAdvice">
+			<!-- 配置切点 -->
+			<aop:pointcut id="pointcut" expression="execution(* com.aop.*.*(..))"/>
+			<!-- 配置前置通知 -->
+			<aop:before pointcut-ref="pointcut" method="beforeAdvice"/>
+			<!-- 配置前置通知 -->
+			<aop:after pointcut-ref="pointcut" method="afterAdvice"/>
+			<!-- 配置后置返回通知 -->
+			<aop:after-returning pointcut-ref="pointcut" method="afterReturnAdvice" returning="result"/>
+			<!-- 配置环绕通知 -->
+			<aop:around pointcut-ref="pointcut" method="aroundAdvice"/>
+			<!-- 异常通知 -->
+			<aop:after-throwing pointcut-ref="pointcut" method="throwingAdvice" throwing="e"/>
+		</aop:aspect>
+	</aop:config>
+
+
+	<!-- 配置使Spring采用CGLIB代理 -->
+	<aop:aspectj-autoproxy proxy-target-class="true"/>
+
+	<!-- 启用对事务注解的支持 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+
+</beans>
